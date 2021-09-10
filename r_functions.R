@@ -54,11 +54,14 @@ cartesian_prod = function(P, Q) {
   return (lapply(P, function(x) lapply(Q, function(y) rbind(x,y))))
 }
 
-likelihood_t1 = function(Y, w, theta, priori) {
-  return ( lapply(Y, function(y) likelihood_t1C(y, w, theta, priori)) )
+log_likelihood = function(Y,w,theta_1, theta_2, priori) {
+  return (-sum(log(likelihood_t1C_v2(Y,w,theta_1, priori) + likelihood_t2C_v2(Y,w,theta_2, priori))))
 }
 
-likelihood_t2 = function(Y, w, theta, priori) {
-  return ( lapply(Y, function(y) likelihood_t2C(y, w, theta, priori)) )
+bic = function(k, n, lhood) {
+  return (k*log(n) - 2*log(lhood))
 }
 
+aic = function(k, lhood) {
+  return ( 2*k - 2*log(lhood)  )
+}

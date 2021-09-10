@@ -83,6 +83,26 @@ NumericVector likelihood_t2C_v2(List Y, int w, NumericMatrix theta, NumericVecto
 }
 
 // [[Rcpp::export]]
+NumericVector score_samples(List Y, NumericMatrix pssm, int w) {
+  int N = Y.size();
+  int L = static_cast<List>(Y[0]).size();
+  NumericVector scores(N*L);
+  
+  int z = 0;
+  for(int k = 0; k < N; ++k) {
+    List y = Y[k];
+    for(int i = 0; i < L; ++i, ++z) {
+      NumericVector seq = y[i];
+      for(int j = 0; j < w; ++j) {
+        scores[z] += pssm(j, seq[j] - 1);
+      }
+    }
+  }
+  
+  return scores;
+} 
+
+// [[Rcpp::export]]
 NumericVector count_nucleotidesC(List Y, int w) {
   NumericVector counter{0,0,0,0};
   int n = Y.size();

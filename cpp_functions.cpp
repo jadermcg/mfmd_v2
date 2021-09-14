@@ -4,24 +4,7 @@ using namespace std;
 
 
 // [[Rcpp::export]]
-NumericVector likelihood_t1C(List y, int w, NumericVector theta, NumericVector priori) {
-  int L = y.size();
-  NumericVector lhood(L);
-  
-  for(int i = 0; i < L; ++i) {
-    NumericVector s = y[i];
-    lhood[i] = priori[0];
-    for(int j = 0; j < w; ++j) {
-      lhood[i] *= theta[s[j] - 1];
-    }
-  }
-  
-  
-  return lhood + 1e-50;
-}
-
-// [[Rcpp::export]]
-NumericVector likelihood_t1C_v2(List Y, int w, NumericVector theta, NumericVector priori) {
+NumericVector likelihood_t1C_v3(List Y, int w, NumericVector theta, double priori) {
   int N = Y.size();
   int L = static_cast<List>(Y[0]).size();
   
@@ -31,36 +14,18 @@ NumericVector likelihood_t1C_v2(List Y, int w, NumericVector theta, NumericVecto
     List y = Y[k];
     for(int i = 0; i < L; ++i, ++z) {
       NumericVector seq = y[i];
-      lhood[z] = priori[0];
+      lhood[z] = 1;
       for(int j = 0; j < w; ++j) {
         lhood[z] *= theta[seq[j] - 1];
       }
     }
   }
   
-  
-  return lhood + 1e-50;
+  return priori * lhood + 1e-50;
 }
 
 // [[Rcpp::export]]
-NumericVector likelihood_t2C(List y, int w, NumericMatrix theta, NumericVector priori) {
-  int L = y.size();
-  NumericVector lhood(L);
-  
-  for(int i = 0; i < L; ++i) {
-    NumericVector s = y[i];
-    lhood[i] = priori[1];
-    for(int j = 0; j < w; ++j) {
-      lhood[i] *= theta(j, s[j] - 1);
-    }
-  }
-  
-  
-  return lhood + 1e-50;
-}
-
-// [[Rcpp::export]]
-NumericVector likelihood_t2C_v2(List Y, int w, NumericMatrix theta, NumericVector priori) {
+NumericVector likelihood_t2C_v3(List Y, int w, NumericMatrix theta, double priori) {
   int N = Y.size();
   int L = static_cast<List>(Y[0]).size();
   
@@ -71,7 +36,7 @@ NumericVector likelihood_t2C_v2(List Y, int w, NumericMatrix theta, NumericVecto
     List y = Y[k];
     for(int i = 0; i < L; ++i, ++z) {
       NumericVector seq = y[i];
-      lhood[z] = priori[1];
+      lhood[z] = 1;
       for(int j = 0; j < w; ++j) {
         lhood[z] *= theta(j, seq[j] - 1);
       }
@@ -79,11 +44,11 @@ NumericVector likelihood_t2C_v2(List Y, int w, NumericMatrix theta, NumericVecto
   }
   
   
-  return lhood + 1e-50;
+  return priori * lhood + 1e-50;
 }
 
 // [[Rcpp::export]]
-NumericVector score_samples(List Y, NumericMatrix pssm, int w) {
+NumericVector sample_scoresC(List Y, NumericMatrix pssm, int w) {
   int N = Y.size();
   int L = static_cast<List>(Y[0]).size();
   NumericVector scores(N*L);
@@ -194,42 +159,7 @@ NumericMatrix pssm_matrixC(NumericVector theta_1, NumericMatrix theta_2) {
 }
 
 // [[Rcpp::export]]
-NumericMatrix maximization_t2C(List Y, List rn2, int w) {
-  NumericMatrix estimates(w, 4);
-  int L = Y.size();
-  int n = static_cast<List>(Y[0]).size();
-  
-  for(int k = 0; k < L; ++k) {
-    List y = Y[k];
-    NumericVector rn = rn2[k];
-    for(int i = 0; i < n; ++i) {
-      NumericVector seq = y[i];
-      for(int j = 0; j < w; ++j) {
-        switch( int(seq[j]) ) {
-        case 1:
-          estimates(j,0) += rn[i];
-          break;
-        case 2:
-          estimates(j,1) += rn[i];
-          break;
-        case 3:
-          estimates(j,2) += rn[i];
-          break;
-        case 4:
-          estimates(j,3) += rn[i];
-          break;
-        }
-      }
-    }
-  }
-  
-  
-  
-  return estimates;
-}
-
-// [[Rcpp::export]]
-NumericMatrix maximization_t2C_v2(List Y, NumericVector rn2, int w) {
+NumericMatrix maximization_v2(List Y, NumericVector rn2, int w) {
   NumericMatrix estimates(w, 4);
   int N = Y.size();
   int L = static_cast<List>(Y[0]).size();

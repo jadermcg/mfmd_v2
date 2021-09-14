@@ -2,7 +2,9 @@
 
 load_dataset = function(file_name) {
   X = read.fasta(file = file_name, seqtype = 'DNA', as.string = F)
-  return ( lapply(X, swap_letter_to_number) )
+  X = lapply(X, swap_letter_to_number)
+  names(X) = 1:len(X)
+  return ( X )
 }
 
 get_samples = function(X, w) {
@@ -44,7 +46,7 @@ count_nucleotides = function(Y) {
 }
 
 relative_nucleotide_freq = function(Y) {
-  n = len(Y$seq1) * len(Y)
+  n = len(Y$`1`) * len(Y)
   w = len(Y[[1]][[1]])
   
   return( count_nucleotides(Y) / (n*w+4) )
@@ -54,8 +56,11 @@ cartesian_prod = function(P, Q) {
   return (lapply(P, function(x) lapply(Q, function(y) rbind(x,y))))
 }
 
-log_likelihood = function(Y,w,theta_1, theta_2, priori) {
-  return (-sum(log(likelihood_t1C_v2(Y,w,theta_1, priori) + likelihood_t2C_v2(Y,w,theta_2, priori))))
+log_likelihood = function(Y, w, theta_1, theta_2, priori) {
+  lhood_1 = mapply(function(t1, p) likelihood_t1C_v3(Y, w, t1, p[1]), t1 = theta_1, p = priori, SIMPLIFY = F)
+  lhood_2 = mapply(function(t2, p) likelihood_t2C_v3(Y, w, t2, p[2]), t2 = theta_2, p = priori, SIMPLIFY = F)
+  lhood = mapply(function(l1, l2) -sum(log(l1 + l2)), l1 = lhood_1, l2 = lhood_2, SIMPLIFY = F)
+  return ( lhood )
 }
 
 bic = function(k, n, lhood) {

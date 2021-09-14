@@ -1,6 +1,6 @@
 get_pos = function(rn1, rn2, L) {
   line = mapply(function(a, b) (which(a > b) %/% L) + 1 , a = rn2, b = rn1, SIMPLIFY = F)
-  column = mapply(function(a, b) which(a > b) %% L , a = rn2, b = rn1, SIMPLIFY = F)
+  column = mapply(function(a, b) (which(a > b) %% L) , a = rn2, b = rn1, SIMPLIFY = F)
   return ( mapply(function(seq,b) cbind(seq,b), seq = line, b = column, SIMPLIFY = F) )
 }
 

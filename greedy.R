@@ -5,13 +5,14 @@ greedy_inicialization = function(Y, N, w, b) {
   
   # Inicial theta_1 values
   theta_1 = relative_nucleotide_freq(Y)
+  # theta_1 = rep(.25, 4)
   
   # Do cartesian product into first and second sequences
-  P = Y$seq1
-  Q = Y$seq2
+  P = Y[[1]]
+  Q = Y[[2]]
   TEMP = cartesian_prod(P, Q)
   
-  # Get 10 first best motifs
+  # Get b first best motifs
   pfm = lapply(TEMP, function(temp) { lapply(temp, pfm_matrixC) })
   ppm = lapply(pfm, function(t) { lapply(t, ppm_matrixC) })
   pssm = lapply(ppm, function(x) { lapply(x,function(y){pssm_matrixC(theta_1, y)})})
@@ -40,7 +41,7 @@ greedy_inicialization = function(Y, N, w, b) {
     P = R[order(IC, decreasing = T)[1:b]]
   }
   
-  # Return 10 best ppm's matrices found
+  # Return b best ppm's matrices found
   return ( lapply(P, ppm_matrixC) )
   
 }

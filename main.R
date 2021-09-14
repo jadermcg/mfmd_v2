@@ -6,8 +6,9 @@ source('r_functions.R')
 source('results.R')
 
 # load raw dataset
-file = 'datasets/CRP.fa'
-X = load_dataset(file)
+file_name = 'datasets/MA1235.1.fa'
+X = load_dataset(file_name)
+X = X[sample(1:len(X), len(X))]
 
 # Parameters
 # w: width of motif
@@ -16,62 +17,45 @@ X = load_dataset(file)
 # L: number of samples per line
 # n: number of total samples
 tic()
-w = 22
+w = 11
 N = len(X)
-M = len(X$seq1)
+M = len(X$`1`)
 L = M - w + 1
-n = N * L
-beta = round (log(L) * sqrt(L))
-beta = L
-
+#n = N * L
+beta  = L
+# stop_loop = round( log(N) * log(L) )
+stop_em_loop = 50
 # Sample dataset
 Y = get_samples(X, w)
 
 # Theta_1
-theta_1 = foreach(i = 1:beta) %do% relative_nucleotide_freq(Y)
+theta_1 = (foreach(i = 1:beta) %do% relative_nucleotide_freq(Y))
+#theta_1 = (foreach(i = 1:beta) %do% rep(.25, 4))
 
 # theta_2: Greedy inicialization
-theta_2 = greedy_inicialization(Y, N, w, beta)
+theta_2 = greedy_inicialization(Y[1:200], 200, w, beta)
 
 # Set priori probabilities
-priori = foreach(i = 1:beta) %do% c(.9, .1)
+priori = (foreach(i = 1:beta) %do% c(.5, .5))
 
 
 # Expectation maximization
-params = em(Y, theta_1, theta_2, priori)
+params = em(Y[1:200], theta_1, theta_2, priori, stop_em_loop)
 
 theta_1 = params$theta_1
 theta_2 = params$theta_2
 priori = params$priori
 rn1 = params$rn1
 rn2 = params$rn2
-log_likes = params$log_likes
 inf_cont = params$inf_cont
 
+pssms = get_pssms(theta_1, theta_2)
+scores = get_pssm_scores(pssms)
+best = which.max(scores)
+pos = get_pos(rn1, rn2, L)
+print(pos[[best]])
+fprintf('%s -> %f', "O maior score é:", max(scores))
 toc()
 
-# Result analysis
-pos = get_pos(rn1, rn2, L)
-pssms = get_pssms(theta_1, theta_2)
-pssm_scores = get_pssm_scores(pssms)
-best = which.max(pssm_scores)
-pssm = pssms[[best]]
-theta_1 = theta_1[[best]]
-theta_2 = theta_2[[best]]
-priori = priori[[best]]
-sample_scores = score_samples(Y, pssm, w)
-g = factor(do.call(c,lapply(1:N, function(x) rep(x, L))))
-sample_scores = split(sample_scores, g)
-pos = pos[[best]]
-log_likes = do.call(c, lapply(log_likes , function(x) x[[best]]))
-inf_cont = do.call(c, lapply(inf_cont , function(x) x[[best]]))
-
-
-# Plots
-plot(log_likes, type = 'l', xlab = 'EM Iteration', ylab = 'Log likelihood', 
-     main = 'Log-likelihood evolution')
-
-plot(inf_cont, type = 'l', xlab = 'EM Iteration', ylab = 'Information content', 
-     main = 'Information content evolution')
 
 # stopCluster(cl)

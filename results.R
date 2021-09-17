@@ -1,7 +1,10 @@
-get_pos = function(rn1, rn2, L) {
-  line = mapply(function(a, b) (which(a > b) %/% L) + 1 , a = rn2, b = rn1, SIMPLIFY = F)
-  column = mapply(function(a, b) (which(a > b) %% L) , a = rn2, b = rn1, SIMPLIFY = F)
-  return ( mapply(function(seq,b) cbind(seq,b), seq = line, b = column, SIMPLIFY = F) )
+get_pos = function(rn1, rn2, N, L) {
+  
+  g = as.factor(foreach(i = 1:N, .combine = 'c') %do% rep(i, L))
+  rn1 = split(rn1, g)
+  rn2 = split(rn2, g)
+  
+  return ( mapply(function(a,b) which(a >= b), a = rn2, b = rn1, SIMPLIFY = F) )
 }
 
 get_pssms = function(theta_1, theta_2) {
@@ -12,4 +15,36 @@ get_pssms = function(theta_1, theta_2) {
 
 get_pssm_scores = function(pssms) {
   return ( do.call(c, lapply(pssms, information_content) ))
+}
+
+get_metrics = function(y_true, y_pred) {
+  # y_true: vector 0's and 1's
+  # y_pred: vector contain positions prediction
+  
+  yt_pos = which(y_true == 1)
+  npos = len(yt_pos)
+  nneg = len(y_true) - npos
+  
+  
+  tp = fp = 0
+  for (i in seq_along(y_pred)) {
+    a = y_pred[i]
+    found = F
+    for (j in seq_along(yt_pos)) {
+      b = yt_pos[j]
+      if (a %near% b) { found = T; break}
+    }
+    
+    if (found) tp = tp + 1 else fp = fp + 1
+  }
+  
+  fn = npos - tp
+  tn = nneg - fp
+  
+  precison = tp / (tp + fp)
+  recall = tp / (tp + fn)
+  fscore = 2 * ( (precison * recall) / (precison+recall))
+  
+  return (list(tp = tp, fp = fp, tn = tn, fn = fn, 
+               precison = precison, recall = recall, fscore = fscore))
 }

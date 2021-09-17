@@ -5,7 +5,6 @@ greedy_inicialization = function(Y, N, w, b) {
   
   # Inicial theta_1 values
   theta_1 = relative_nucleotide_freq(Y)
-  # theta_1 = rep(.25, 4)
   
   # Do cartesian product into first and second sequences
   P = Y[[1]]
@@ -34,6 +33,7 @@ greedy_inicialization = function(Y, N, w, b) {
     ppm = lapply(pfm, function(t) { lapply(t, ppm_matrixC) })
     pssm = lapply(ppm, function(x) { lapply(x,function(y){pssm_matrixC(theta_1, y)})})
     IC = lapply(pssm, function(x) lapply(x, information_content))
+    
     
     POS = lapply(IC, which.max)
     R = foreach(i = 1:len(pfm)) %do% pfm[[i]][[POS[[i]]]]

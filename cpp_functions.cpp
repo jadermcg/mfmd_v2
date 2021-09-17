@@ -4,7 +4,7 @@ using namespace std;
 
 
 // [[Rcpp::export]]
-NumericVector likelihood_t1C_v3(List Y, int w, NumericVector theta, double priori) {
+NumericVector likelihood_t1C_v3(List Y, int w, NumericVector theta_1, double priori) {
   int N = Y.size();
   int L = static_cast<List>(Y[0]).size();
   
@@ -16,7 +16,7 @@ NumericVector likelihood_t1C_v3(List Y, int w, NumericVector theta, double prior
       NumericVector seq = y[i];
       lhood[z] = 1;
       for(int j = 0; j < w; ++j) {
-        lhood[z] *= theta[seq[j] - 1];
+        lhood[z] *= theta_1[seq[j] - 1];
       }
     }
   }
@@ -25,7 +25,7 @@ NumericVector likelihood_t1C_v3(List Y, int w, NumericVector theta, double prior
 }
 
 // [[Rcpp::export]]
-NumericVector likelihood_t2C_v3(List Y, int w, NumericMatrix theta, double priori) {
+NumericVector likelihood_t2C_v3(List Y, int w, NumericMatrix theta_2, double priori) {
   int N = Y.size();
   int L = static_cast<List>(Y[0]).size();
   
@@ -38,7 +38,7 @@ NumericVector likelihood_t2C_v3(List Y, int w, NumericMatrix theta, double prior
       NumericVector seq = y[i];
       lhood[z] = 1;
       for(int j = 0; j < w; ++j) {
-        lhood[z] *= theta(j, seq[j] - 1);
+        lhood[z] *= theta_2(j, seq[j] - 1);
       }
     }
   }
@@ -69,7 +69,7 @@ NumericVector sample_scoresC(List Y, NumericMatrix pssm, int w) {
 
 // [[Rcpp::export]]
 NumericVector count_nucleotidesC(List Y, int w) {
-  NumericVector counter{0,0,0,0};
+  NumericVector counter(4);
   int n = Y.size();
   
   for(int i = 0; i < n; ++i) {
@@ -159,7 +159,7 @@ NumericMatrix pssm_matrixC(NumericVector theta_1, NumericMatrix theta_2) {
 }
 
 // [[Rcpp::export]]
-NumericMatrix maximization_v2(List Y, NumericVector rn2, int w) {
+NumericMatrix maximization_v2(List Y, NumericVector rn, int w) {
   NumericMatrix estimates(w, 4);
   int N = Y.size();
   int L = static_cast<List>(Y[0]).size();
@@ -172,16 +172,16 @@ NumericMatrix maximization_v2(List Y, NumericVector rn2, int w) {
       for(int j = 0; j < w; ++j) {
         switch( int(seq[j]) ) {
         case 1:
-          estimates(j,0) += rn2[z];
+          estimates(j,0) += rn[z];
           break;
         case 2:
-          estimates(j,1) += rn2[z];
+          estimates(j,1) += rn[z];
           break;
         case 3:
-          estimates(j,2) += rn2[z];
+          estimates(j,2) += rn[z];
           break;
         case 4:
-          estimates(j,3) += rn2[z];
+          estimates(j,3) += rn[z];
           break;
         }
       }

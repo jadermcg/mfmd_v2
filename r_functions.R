@@ -1,4 +1,8 @@
+source('em.R')
+
 "%==%" = function(x,y) { if(all.equal(target = x, current = y, tolerance=1e-5) == T) { T } else { F } }
+
+'%near%' = function(x, y) { if (abs(x-y) <= 5) return( T ) else return (F)  }
 
 load_dataset = function(file_name) {
   X = read.fasta(file = file_name, seqtype = 'DNA', as.string = F)
@@ -56,11 +60,10 @@ cartesian_prod = function(P, Q) {
   return (lapply(P, function(x) lapply(Q, function(y) rbind(x,y))))
 }
 
-log_likelihood = function(Y, w, theta_1, theta_2, priori) {
-  lhood_1 = mapply(function(t1, p) likelihood_t1C_v3(Y, w, t1, p[1]), t1 = theta_1, p = priori, SIMPLIFY = F)
-  lhood_2 = mapply(function(t2, p) likelihood_t2C_v3(Y, w, t2, p[2]), t2 = theta_2, p = priori, SIMPLIFY = F)
-  lhood = mapply(function(l1, l2) -sum(log(l1 + l2)), l1 = lhood_1, l2 = lhood_2, SIMPLIFY = F)
-  return ( lhood )
+log_likelihood = function(Y, theta, w) {
+  E = expectation(Y, theta, w)
+  return ( list(log_like = sum(log(E$lhood)), lhood_1 = E$lhood_1, lhood_2 = E$lhood_2, 
+                rn1 = E$rn1, rn2 = E$rn2 ))
 }
 
 bic = function(k, n, lhood) {
